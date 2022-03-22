@@ -1,11 +1,13 @@
 #!/bin/sh
 
+set -x
+
 ## configuration variables:
-VLAN=5
-IPV4_IP="10.0.5.3"
+VLAN=4
+IPV4_IP="${PIHOLE_IP}"
 # This is the IP address of the container. You may want to set it to match
 # your own network structure such as 192.168.5.3 or similar.
-IPV4_GW="10.0.5.1/24"
+IPV4_GW="${PIHOLE_GATEWAY}/24"
 # As above, this should match the gateway of the VLAN for the container
 # network as above which is usually the .1/24 range of the IPV4_IP
 
@@ -41,7 +43,9 @@ fi
 ip link set "br${VLAN}" promisc on
 
 # create macvlan bridge and add IPv4 IP
+ip link delete "br${VLAN}.mac" 2>/dev/null
 ip link add "br${VLAN}.mac" link "br${VLAN}" type macvlan mode bridge
+ip addr delete "${IPV4_GW}" dev "br${VLAN}.mac" 2>/dev/null
 ip addr add "${IPV4_GW}" dev "br${VLAN}.mac" noprefixroute
 
 # (optional) add IPv6 IP to VLAN bridge macvlan bridge
